@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 /**
@@ -116,6 +117,23 @@ public class Order{
                 ", product=" + product +
                 ", area=" + area +
                 '}';
+    }
+
+    public boolean validateState(String stateAb) throws OrderDaoException {
+        TaxDao taxDao = new TaxDaoFileImpl();
+        List<Tax> taxes = taxDao.getTaxes();
+        for (Tax tax:taxes)
+             {if(tax.getStateAbbreviation().equals(stateAb)){
+                 return true;
+             }
+        }
+        return false;
+    }
+
+    public boolean validateProduct(String productType) throws OrderDaoException {
+        ProductDao productDao = new ProductDaoFileImpl();
+        Product product = productDao.getProduct(productType);
+        return product != null;
     }
 }
 
