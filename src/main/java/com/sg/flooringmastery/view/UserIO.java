@@ -10,9 +10,9 @@ public interface UserIO {
 
     int readInt(String prompt, int min, int max);
 
-    String readString(String prompt,boolean isAllowNull) throws OrderDaoException;
 
     String readDate(String s) throws OrderDaoException;
 
     String readString(String prompt);
+    boolean hasContent(String string);
 }
