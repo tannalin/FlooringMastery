@@ -1,0 +1,2 @@
+OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total
+53,zhilin,CA,25.00,Wood,34,5.15,4.75,175.10,175.10,8755.00,9105.20
