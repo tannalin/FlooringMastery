@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 /**
  *
  */
-public class Order{
+public class Order implements Comparable {
     private LocalDate orderDate;
     private Integer orderNumber;
     private String customerName;
@@ -16,22 +16,10 @@ public class Order{
     private Product product;
     private BigDecimal area;
 
-    public Order(){
-
-    }
-    public Order(Integer orderNumber, String customerName, Tax tax, Product product, BigDecimal area) {
-        this.orderNumber = orderNumber;
-        this.customerName = customerName;
-        this.tax = tax;
-        this.product = product;
-        this.area = area;
-    }
-
-
+    public Order() { }
     public Order(Integer orderNumber) {
         this.orderNumber = orderNumber;
     }
-
     public Integer getOrderNumber() {
         return orderNumber;
     }
@@ -39,7 +27,7 @@ public class Order{
         return customerName;
     }
     public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+            this.customerName = customerName;
     }
     public Tax getTax() {
         return tax;
@@ -139,6 +127,12 @@ public class Order{
         } else {
             return false;
         }
+    }
+
+
+    @Override
+    public int compareTo(Object o) {
+        return ((Order) o).getOrderNumber().compareTo(this.getOrderNumber());
     }
 }
 

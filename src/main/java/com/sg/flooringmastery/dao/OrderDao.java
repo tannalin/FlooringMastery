@@ -63,4 +63,6 @@ public interface OrderDao {
     List<Order> getOrdersBaseOnDate(String date) throws OrderDaoException, IOException;
 
     void editOrder(Integer orderNumber, Order order) throws IOException, OrderDaoException;
+
+    void exportOrders() throws IOException, OrderDaoException;
 }

@@ -12,6 +12,8 @@ public class OrderDaoFileImpl implements OrderDao {
     private Scanner scanner;
     public static final String DELIMITER = ",";
     public static final String ORDER_NUMBER_FILE = "Data/OrderNumberFile.txt";
+    public static final String BACK_UP_FILE = "Backup/DataExport.txt";
+    public static final int COUNT_DELIMTER = 11;
 
     @Override
     public Order addOrder(Integer orderNumber, Order order) throws OrderDaoException, IOException {
@@ -34,6 +36,7 @@ public class OrderDaoFileImpl implements OrderDao {
         loadOrdersFile();
         return new ArrayList<>(orders.values());
     }
+
     @Override
     public List<Order> getOrdersBaseOnDate(String date) throws OrderDaoException, IOException {
         loadOrdersFileBaseOnDate(date);
@@ -65,6 +68,12 @@ public class OrderDaoFileImpl implements OrderDao {
         orderList.remove(removeOrder);
         writeOrders();
         return removeOrder;
+    }
+
+    @Override
+    public void exportOrders() throws IOException, OrderDaoException {
+        loadOrdersFile();
+        backupOrders();
     }
 
     public Integer getPreviousOrderNumber() throws OrderDaoException {
@@ -100,20 +109,44 @@ public class OrderDaoFileImpl implements OrderDao {
         out.close();
     }
 
-
     private Order unmarshallOrder(String orderAsText, String dataString) throws OrderDaoException {
-
-        String[] orderTokens = orderAsText.split(DELIMITER);
-        String orderNumber = orderTokens[0];
+        int countDelimiter = getCountDelimiter(orderAsText);
+        int indexOfFirstDelimeter = getIndexOfFirstDelimeter(orderAsText);
+        int indexOfCountDelimeter = getIndexOfCountDelimeter(countDelimiter - COUNT_DELIMTER + 2,orderAsText );
+        String orderNumber = orderAsText.substring(0,indexOfFirstDelimeter);
         Order orderFromFile = new Order(Integer.parseInt(orderNumber));
-        orderFromFile.setCustomerName(orderTokens[1]);
-        String productType = orderTokens[4];
-        orderFromFile.setArea(orderTokens[5]);
-        String stateAB = orderTokens[2];
+        String customerName = orderAsText.substring(indexOfFirstDelimeter + 1,indexOfCountDelimeter);
+        orderFromFile.setCustomerName(customerName);
+        String[] orderTokens = orderAsText.substring(indexOfCountDelimeter + 1).split(DELIMITER);
+        String productType = orderTokens[2];
+        orderFromFile.setArea(orderTokens[3]);
+        String stateAB = orderTokens[0];
         orderFromFile.setProduct(productType);
         orderFromFile.setTax(stateAB);
         orderFromFile.setOrderDate(dataString);
         return orderFromFile;
+    }
+
+    private int getIndexOfCountDelimeter(int i, String orderAsText) {
+        int index = 0;
+        int count = 0;
+        for(; index < orderAsText.length(); index++){
+            if ((orderAsText.charAt(index)+"").equals(DELIMITER)) {
+                count++;
+                if(count == i) break;
+            }
+        }
+        return index;
+    }
+
+    private int getIndexOfFirstDelimeter(String orderAsText) {
+        int index = 0;
+        for(; index < orderAsText.length(); index++){
+            if ((orderAsText.charAt(index)+"").equals(DELIMITER)) {
+                break;
+            }
+        }
+        return index;
     }
 
     private void loadOrdersFile() throws OrderDaoException, IOException {
@@ -194,7 +227,7 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     /**
-     * Writes all students in the roster out to a ROSTER_FILE.  See loadRoster
+     * Writes all orders in the orderList out to files. See Orders/
      * for file format.
      *
      * @throws OrderDaoException if an error occurs writing to the file
@@ -209,22 +242,67 @@ public class OrderDaoFileImpl implements OrderDao {
                 out = new PrintWriter(new FileWriter(pathName));
             } catch (IOException e) {
                 throw new OrderDaoException(
-                        "Could not save student data.", e);
+                        "Could not save orders data.", e);
             }
             out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
             ArrayList<Order> orderList = ordersByDate.get(key);
             String orderAsText;
             for (Order currentOrder : orderList ) {
-                // turn a Student into a String
                 orderAsText = marshallOrder(currentOrder,false);
-                // write the Student object to the file
                 out.println(orderAsText);
-                // force PrintWriter to write line to the file
                 out.flush();
             }
             // Clean up
             out.close();
         }
+    }
+
+
+
+    /**
+     * Writes all orders in the orderList out to files. See Orders/
+     * for file format.
+     *
+     * @throws OrderDaoException if an error occurs writing to the file
+     */
+    public void backupOrders() throws OrderDaoException, IOException {
+        PrintWriter out;
+
+
+        try {
+            out = new PrintWriter(new FileWriter(BACK_UP_FILE));
+        } catch (IOException e) {
+            throw new OrderDaoException(
+                    "Could not save orders data.", e);
+        }
+        out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total,OrderDate" +
+                "");
+        ArrayList<Order> orderList = (ArrayList<Order>) getOrders();
+        Collections.sort(orderList);
+        Collections.reverse(orderList);
+        String orderAsText;
+        for (Order currentOrder : orderList ) {
+            // turn a Student into a String
+            orderAsText = marshallOrder(currentOrder,true);
+            // write the Student object to the file
+            out.println(orderAsText);
+            // force PrintWriter to write line to the file
+            out.flush();
+        }
+        // Clean up
+        out.close();
+
+
+    }
+
+    public int getCountDelimiter(String text){
+        int count = 0;
+        for(int i = 0; i < text.length(); i++){
+            if ((text.charAt(i)+"").equals(DELIMITER)) {
+                count++;
+            }
+        }
+        return count;
     }
 
 }

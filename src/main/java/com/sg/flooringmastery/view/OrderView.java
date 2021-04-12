@@ -21,6 +21,22 @@ public class OrderView {
         this.io = io;
     }
 
+   //print menu and get choice from user input
+    public int printMenuAndGetSelection() {
+        io.print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+        io.print("* <<Flooring Program>>");
+        io.print("* 1. Display Orders");
+        io.print("* 2. Add an Order");
+        io.print("* 3. Edit an Order");
+        io.print("* 4. Remove an Order");
+        io.print("* 5. Export All Data");
+        io.print("* 6. Quit");
+        io.print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+
+        return io.readInt("Please select from the above choices.", 1, 6);
+    }
+
+    //get order information from user
     public Order getNewOrderInfo(Integer previousOrderNumber, List<Product> products) throws OrderDaoException {
         //set info to orders
         Order currentOrder = new Order(previousOrderNumber + 1);
@@ -38,7 +54,6 @@ public class OrderView {
         currentOrder.setProduct(productType);
         return currentOrder;
     }
-
     public Order getEditInfo(Order order,List<Product> products) throws OrderDaoException {
         isEditMode = true;
         currentOrder = order;
@@ -55,85 +70,10 @@ public class OrderView {
         return order;
     }
 
-    public void displayCreateOrderBanner() {
-        io.print("=== Create Order ===");
-    }
-
-    public void displayProductsList(List<Product> products) {
-        io.print("Products:");
-        for (Product currentProduct : products) {
-            String orderInfo = String.format("#%s : %s %s",
-                    currentProduct.getProductType(),currentProduct.getCostPerSquareFoot(),currentProduct.getLaborCostPerSquareFoot());
-            io.print(orderInfo);
-        }
-    }
-
-    public void displayCreateSuccessBanner() {
-        io.readString(
-                "Order successfully created.  Please hit enter to continue");
-    }
-
-    public void displayOrderList(List<Order> orderList) {
-        for (Order currentOrder : orderList) {
-            io.print(currentOrder.toString());
-        }
-        io.readString("Please hit enter to continue.");
-    }
-
-    public void displayDisplayOrdersBanner() {
-        io.print("=== Display Orders ===");
-        io.print("Order: OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
-    }
-
-    public void displayDisplayOrderBanner () {
-        io.print("=== Display Order ===");
-    }
-
-
-    public void displayRemoveOrderBanner () {
-        io.print("=== Remove Order ===");
-    }
-
-    public void displayRemoveResult(Order orderRecord)  {
-        if(orderRecord != null){
-            io.print("Order successfully removed.");
-        }else{
-            io.print("No such order.");
-        }
-        io.readString("Please hit enter to continue.");
-    }
-
-    public void displayExitBanner() {
-        io.print("Good Bye!!!");
-    }
-
-    public void displayUnknownCommandBanner() {
-        io.print("Unknown Command!!!");
-    }
-
-    public void displayErrorMessage(String errorMsg) {
-        io.print("=== ERROR ===");
-        io.print(errorMsg);
-    }
-
-    public int printMenuAndGetSelection() {
-        io.print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
-        io.print("* <<Flooring Program>>");
-        io.print("* 1. Display Orders");
-        io.print("* 2. Add an Order");
-        io.print("* 3. Edit an Order");
-        io.print("* 4. Remove an Order");
-        io.print("* 5. Export All Data");
-        io.print("* 6. Quit");
-        io.print("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
-
-        return io.readInt("Please select from the above choices.", 1, 6);
-    }
-
+    //Methods for Read information/choices by user input
     public Integer readOrderNumber() {
         return io.readInt("Please enter the order number.");
     }
-
     public String readCustomerName(boolean isEditMode) {
         String message = "Please enter the customer Name";
         String customerName;
@@ -153,7 +93,6 @@ public class OrderView {
         }
         return customerName;
     }
-
     public String readStateAb(boolean isEditMode) throws OrderDaoException {
         String message = "Please enter the State abbreviation (ex: CA)";
         String stateAb;
@@ -174,7 +113,6 @@ public class OrderView {
             }
         }
     }
-
     public String readProductType(boolean isEditMode) throws OrderDaoException {
         String message = "Please enter the Product type (ex: Wood)";
         while(true) {
@@ -195,7 +133,6 @@ public class OrderView {
         }
 
     }
-
     public String readDate(boolean isQueryMode) {
         String message = "Please enter the order date(format: MMddyyyy (06302021))";
 
@@ -220,7 +157,6 @@ public class OrderView {
             }
         }
     }
-
     public String readArea(boolean isEditMode){
         String message = "Please enter area";
         while(true){
@@ -250,11 +186,6 @@ public class OrderView {
             }
         }
     }
-
-    public void displayOrderCancelBanner() {
-        io.print("=== Order  Canceled ===");
-    }
-
     public int readConfirmPlaceOrderChoice() {
         return io.readInt("Please Confirm to place this order (Press 1 for yes and 2 for no)",1,2);
     }
@@ -262,19 +193,75 @@ public class OrderView {
         return io.readInt("Please Confirm to place this order (Press 1 for yes and 2 for no)",1,2);
     }
 
+    //Methods for display queries depends on user choice frm main menu
     public void displayOrder(Order currentOrder) {
         io.print("Order: OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
         io.print(currentOrder.toString());
     }
+    public void displayProductsList(List<Product> products) {
+        io.print("Products:");
+        for (Product currentProduct : products) {
+            String orderInfo = String.format("#%s : %s %s",
+                    currentProduct.getProductType(),currentProduct.getCostPerSquareFoot(),currentProduct.getLaborCostPerSquareFoot());
+            io.print(orderInfo);
+        }
+    }
+    public void displayOrderList(List<Order> orderList) {
+        for (Order currentOrder : orderList) {
+            io.print(currentOrder.toString());
+        }
+        io.readString("Please hit enter to continue.");
+    }
 
-
+    //Display banners to show information about the statues of applications
+    public void displayOrderUpdatedBanner() {
+        io.print("=== Order successfully updated ===");
+        io.readString("Please hit enter to continue.");
+    }
+    public void displayExportSuccessBanner() {
+        io.print("=== Orders successfully Exported to Backup/DataExport.txt ===");
+        io.readString("Please hit enter to continue.");
+    }
+    public void displayCreateSuccessBanner() {
+        io.readString(
+                "---Order successfully added-------\r\n.  Please hit enter to continue");
+    }
+    public void displayCreateOrderBanner() {
+        io.print("=== Create a new Order ===");
+    }
+    public void displayDisplayOrdersBanner() {
+        io.print("=== Display Orders for date picked===");
+        io.print("Order: OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
+    }
     public void displayKeepSameInfoBanner() {
         io.print("=== Keep Previous Information ===");
         io.readString("Please hit enter to continue.");
     }
+    public void displayDisplayOrderBanner () {
+        io.print("=== Display Order for update ===");
+    }
+    public void displayRemoveOrderBanner () {
+        io.print("=== Order successfully removed ===");
+    }
+    public void displayExitBanner() {
+        io.print("Good Bye!!!");
+    }
+    public void displayRemoveResult(Order orderRecord)  {
+        if(orderRecord != null){
+            io.print("Order successfully removed.");
+        }else{
+            io.print("No such order.");
+        }
 
-    public void displayOrderUpdatedBanner() {
-        io.print("=== Order updated ===");
-        io.readString("Please hit enter to continue.");
+    }
+    public void displayUnknownCommandBanner() {
+        io.print("Unknown Command!!!");
+    }
+    public void displayErrorMessage(String errorMsg) {
+        io.print("=== ERROR ===");
+        io.print(errorMsg);
+    }
+    public void displayOrderCancelBanner() {
+        io.print("=== Order Canceled ===");
     }
 }

@@ -41,18 +41,21 @@ public class OrderController {
                     case 4:
                         removeOrder();
                         break;
-
+                    case 5:
+                        exportOrders();
+                        break;
                     case 6:
                         keepGoing = false;
                         break;
                     default:
                         unknownCommand();
                 }
-
             }
             exitMessage();
         } catch (OrderDaoException | IOException e) {
             view.displayErrorMessage(e.getMessage());
+        } finally {
+            view.printMenuAndGetSelection();
         }
     }
 
@@ -114,5 +117,10 @@ public class OrderController {
 
     private void exitMessage() {
         view.displayExitBanner();
+    }
+
+    private void exportOrders() throws IOException, OrderDaoException {
+        orderDao.exportOrders();
+        view.displayExportSuccessBanner();
     }
 }
