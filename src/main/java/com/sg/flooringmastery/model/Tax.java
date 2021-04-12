@@ -17,7 +17,7 @@ public class Tax {
     }
 
     public void setStateAbbreviation(String stateAbbreviation) {
-        stateAbbreviation = stateAbbreviation;
+        this.stateAbbreviation = stateAbbreviation;
     }
 
     public String getStateName() {
@@ -25,7 +25,7 @@ public class Tax {
     }
 
     public void setStateName(String stateName) {
-        stateName = stateName;
+        this.stateName = stateName;
     }
 
     public BigDecimal getTaxRate() {

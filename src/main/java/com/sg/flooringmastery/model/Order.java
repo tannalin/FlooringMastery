@@ -1,12 +1,9 @@
 package com.sg.flooringmastery.model;
 import com.sg.flooringmastery.dao.*;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 
 /**
  *
@@ -49,52 +46,46 @@ public class Order{
     }
     public void setTax(String stateAB) throws OrderDaoException {
         TaxDao taxDao = new TaxDaoFileImpl();
-        Tax tax = taxDao.getTax(stateAB);
-        this.tax = tax;
+        this.tax  = taxDao.getTax(stateAB);
     }
     public Product getProduct() {
         return product;
     }
     public void setProduct(String productType) throws OrderDaoException {
         ProductDao productDao = new ProductDaoFileImpl();
-        Product product = productDao.getProduct(productType);
-        this.product = product;
+        this.product = productDao.getProduct(productType);
     }
     public BigDecimal getArea() {
         return area;
     }
     public void setArea(String area) {
-        this.area = new BigDecimal(area);
+        this.area = new BigDecimal(area).setScale(2, RoundingMode.CEILING);
     }
 
     /**
      * @return BigDecimal labor Cost
      */
     public BigDecimal calculateLaborCost(){
-        BigDecimal laborCost = this.area.multiply(this.product.getCostPerSquareFoot()).setScale(2, RoundingMode.CEILING);
-        return laborCost;
+        return this.area.multiply(this.product.getCostPerSquareFoot()).setScale(2, RoundingMode.CEILING);
     }
     /**
      * @return BigDecimal labor Cost
      */
     public BigDecimal calculateMaterialCost(){
-        BigDecimal materialCost = this.area.multiply(this.product.getCostPerSquareFoot()).setScale(2, RoundingMode.CEILING);
-        return materialCost;
+        return this.area.multiply(this.product.getCostPerSquareFoot()).setScale(2, RoundingMode.CEILING);
     }
 
     /**
      * @return BigDecimal Tax
      */
     public BigDecimal calculateTax(){
-        BigDecimal tax = this.tax.getTaxRate().multiply(calculateMaterialCost().add(calculateLaborCost())).setScale(2, RoundingMode.CEILING);
-        return tax;
+        return this.tax.getTaxRate().multiply(calculateMaterialCost().add(calculateLaborCost())).setScale(2, RoundingMode.CEILING);
     }
     /**
      * @return BigDecimal total cost
      */
     public BigDecimal calculateTotal(){
-        BigDecimal total = calculateMaterialCost().add(calculateTax()).add(calculateLaborCost());
-        return total;
+        return calculateMaterialCost().add(calculateTax()).add(calculateLaborCost());
     }
 
     public LocalDate getOrderDate() {
@@ -103,37 +94,51 @@ public class Order{
 
     public void setOrderDate(String sOrderDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
-        LocalDate orderDate = LocalDate.parse(sOrderDate,formatter);
-        this.orderDate = orderDate;
+        this.orderDate = LocalDate.parse(sOrderDate,formatter);
     }
 
     @Override
     public String toString() {
-        return "Order{" +
-                "orderDate=" + orderDate +
-                ", orderNumber=" + orderNumber +
-                ", customerName='" + customerName + '\'' +
-                ", tax=" + tax +
-                ", product=" + product +
-                ", area=" + area +
-                '}';
+        return "    " + orderNumber + "   " + customerName + "   " + tax.getStateName() + "   " + tax.getTaxRate() + "   " + product.getProductType() + "   " + area + "   " + product.getCostPerSquareFoot() + "   " + product.getLaborCostPerSquareFoot() + " "+
+                calculateMaterialCost() + "   " + calculateLaborCost() + "   " + calculateTax() + "   " + calculateTotal();
     }
 
     public boolean validateState(String stateAb) throws OrderDaoException {
         TaxDao taxDao = new TaxDaoFileImpl();
-        List<Tax> taxes = taxDao.getTaxes();
-        for (Tax tax:taxes)
-             {if(tax.getStateAbbreviation().equals(stateAb)){
-                 return true;
-             }
-        }
-        return false;
+        Tax tax = taxDao.getTax(stateAb);
+        return tax != null;
     }
 
     public boolean validateProduct(String productType) throws OrderDaoException {
         ProductDao productDao = new ProductDaoFileImpl();
         Product product = productDao.getProduct(productType);
         return product != null;
+    }
+
+    public boolean validateArea(double areaDouble) {
+        final int MIN_AREA = 100;
+        BigDecimal area = new BigDecimal(areaDouble).setScale(2, RoundingMode.CEILING);
+        return area.intValue() > MIN_AREA;
+    }
+
+    public boolean validateDate(String dateString)  {
+        String regex = "^(1[0-2]|0[1-9])(3[01]|[12][0-9]|0[1-9])[0-9]{4}$";
+        if(dateString.matches(regex)){
+            int month = Integer.parseInt(dateString.substring(0,2));
+            int days = Integer.parseInt(dateString.substring(2,4));
+            int year = Integer.parseInt(dateString.substring(4));
+            if (days == 31  && (month== 4|| month == 6 || month == 9 || month == 11)){
+                return false;
+            } else if (days >= 30 && month == 2) {
+                return false;
+            } else if (month == 2 && days == 29 &&!( year % 4 == 0 && year % 100 != 0 || year % 400 == 0)) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 }
 

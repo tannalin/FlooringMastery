@@ -1,9 +1,5 @@
 package com.sg.flooringmastery.view;
 
-import com.sg.flooringmastery.dao.OrderDaoException;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class UserIOConsoleImpl implements UserIO{
@@ -37,28 +33,6 @@ public class UserIOConsoleImpl implements UserIO{
         return console.nextLine();
     }
 
-    @Override
-    public String readDate(String msgPrompt) throws OrderDaoException {
-        boolean invalidInput = true;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
-        String sOrderDate = "";
-
-        while (invalidInput) {
-            try {
-                sOrderDate = this.readString(msgPrompt);
-                LocalDate orderDate = LocalDate.parse(sOrderDate,formatter);
-                LocalDate START = LocalDate.now();
-                if(orderDate.isBefore(START)){
-                    throw new OrderDaoException("Order date must be in future");
-                }
-                invalidInput = false;
-            } catch (Exception e) {
-                throw new OrderDaoException("Input should in format MMddyyyy (12302012). Please try again.");
-            }
-        }
-
-        return sOrderDate;
-    }
 
     /**
      *
@@ -128,8 +102,6 @@ public class UserIOConsoleImpl implements UserIO{
         return num;
     }
     /**
-     WARNING: This method is extremely common, and should be in a utility class.
-     (It really should be in the JDK, as a static method of the String class.)
      */
     public boolean hasContent(String string) {
         return (string != null && string.trim().length() > 0);

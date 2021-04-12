@@ -5,7 +5,6 @@ import com.sg.flooringmastery.dao.OrderDaoException;
 import com.sg.flooringmastery.dao.ProductDao;
 import com.sg.flooringmastery.model.Order;
 import com.sg.flooringmastery.view.OrderView;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -13,6 +12,7 @@ public class OrderController {
     private OrderView view;
     private OrderDao orderDao;
     private ProductDao productDao;
+    final int CONFIRM = 1;
 
     public OrderController(OrderDao orderDao, ProductDao productDao, OrderView view) {
         this.orderDao = orderDao;
@@ -22,7 +22,7 @@ public class OrderController {
 
     public void run()  {
         boolean keepGoing = true;
-        int menuSelection = 0;
+        int menuSelection;
         try {
             while (keepGoing) {
 
@@ -63,33 +63,49 @@ public class OrderController {
     private void createOrder() throws OrderDaoException, IOException {
         view.displayCreateOrderBanner();
         Order newOrder= view.getNewOrderInfo(orderDao.getPreviousOrderNumber(), productDao.getProducts());
-        orderDao.writeOrderNumberToFile(newOrder.getOrderNumber());
-        orderDao.addOrder(newOrder.getOrderNumber(), newOrder);
-        view.displayCreateSuccessBanner();
+        view.displayDisplayOrderBanner();
+        view.displayOrder(newOrder);
+        int confirm = view.readConfirmPlaceOrderChoice();
+        if(confirm == CONFIRM) {
+            orderDao.writeOrderNumberToFile(newOrder.getOrderNumber());
+            orderDao.addOrder(newOrder.getOrderNumber(), newOrder);
+            view.displayCreateSuccessBanner();
+        } else {
+            view.displayOrderCancelBanner();
+        }
     }
 
     private void listOrdersBaseOnDate() throws OrderDaoException, IOException {
-        view.displayDisplayAllBanner();
-        String date = view.getDateChoice();
+        view.displayDisplayOrdersBanner();
+        String date = view.readDate(true);
         List<Order> orderList = orderDao.getOrdersBaseOnDate(date);
         view.displayOrderList(orderList);
     }
 
-
     private void editOrder() throws OrderDaoException, IOException {
-        view.displayDisplayStudentBanner();
-        Integer orderNumber = Integer.parseInt(view.getOrderNumberChoice());
-        String date = view.getDateChoice();
-
+        view.displayDisplayOrderBanner();
+        Integer orderNumber = view.readOrderNumber();
+        String date = view.readDate(true);
         Order order = orderDao.getOrder(orderNumber,date);
-        
+        String beforeUpdate = order.toString();
+        order = view.getEditInfo(order,productDao.getProducts());
+        view.displayOrder(order);
+        int confirm = view.readConfirmUpdateOrderChoice();
+        if (!beforeUpdate.equals(order.toString())&&confirm == CONFIRM) {
+            orderDao.editOrder(order.getOrderNumber(), order);
+            view.displayOrderUpdatedBanner();
+        } else {
+            view.displayKeepSameInfoBanner();
+        }
     }
 
-    private void removeOrder() throws OrderDaoException {
-        //view.displayRemoveStudentBanner();
-        //String studentId = view.getStudentIdChoice();
-       // Student removedStudent = dao.removeStudent(studentId);
-       // view.displayRemoveResult(removedStudent);
+    private void removeOrder() throws OrderDaoException, IOException {
+        boolean isQueryMode = true;
+        view.displayRemoveOrderBanner();
+        Integer orderNumber = view.readOrderNumber();
+        String date =  view.readDate(isQueryMode);
+        Order removeOrder = orderDao.removeOrder(orderNumber, date);
+        view.displayRemoveResult(removeOrder);
     }
 
     private void unknownCommand() {

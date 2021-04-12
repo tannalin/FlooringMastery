@@ -8,19 +8,24 @@ import java.util.*;
 public class OrderDaoFileImpl implements OrderDao {
 
     private Map<Integer,Order> orders = new HashMap<>();
-    private List<Order> newOrders = new ArrayList<>();
+    private Map<String,ArrayList<Order>> ordersByDate = new HashMap<>();
     private Scanner scanner;
     public static final String DELIMITER = ",";
     public static final String ORDER_NUMBER_FILE = "Data/OrderNumberFile.txt";
 
     @Override
     public Order addOrder(Integer orderNumber, Order order) throws OrderDaoException, IOException {
-
-        System.out.println(order.toString());
         loadOrdersFile();
         Order newOrder = orders.put(orderNumber, order);
-        newOrders.add(order);
-        writeNewOrders();
+        String date2String = order.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
+        if(ordersByDate.containsKey(date2String)) {
+            ordersByDate.get(date2String).add(order);
+        }else{
+            ArrayList<Order> newList = new ArrayList<>();
+            newList.add(order);
+            ordersByDate.put(date2String, newList);
+        }
+        writeOrders();
         return newOrder;
     }
 
@@ -36,17 +41,31 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     @Override
+    public void editOrder(Integer orderNumber, Order order) throws IOException, OrderDaoException {
+        loadOrdersFile();
+        String date2String = order.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
+        ArrayList<Order> arrayList = ordersByDate.get(date2String);
+        Integer index = arrayList.indexOf(orders.get(orderNumber));
+        arrayList.set(index,order);
+        orders.replace(orderNumber, order);
+        writeOrders();
+    }
+
+    @Override
     public Order getOrder(Integer orderNumber, String date) throws OrderDaoException, IOException {
         loadOrdersFile();
         return orders.get(orderNumber);
     }
 
     @Override
-    public Order removeOrder(String OrderId) throws OrderDaoException, IOException {
+    public Order removeOrder(Integer orderNumber, String date) throws OrderDaoException, IOException {
         loadOrdersFile();
-        return null;
+        Order removeOrder = orders.remove(orderNumber);
+        ArrayList orderList = ordersByDate.get(date);
+        orderList.remove(removeOrder);
+        writeOrders();
+        return removeOrder;
     }
-
 
     public Integer getPreviousOrderNumber() throws OrderDaoException {
         try {
@@ -98,12 +117,12 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     private void loadOrdersFile() throws OrderDaoException, IOException {
-        String[] pathNames;
+        String[] pathNameLists;
         File folder = new File("Orders");
-        pathNames = folder.list();
+        pathNameLists = folder.list();
         BufferedReader reader;
 
-        for (String pathName: pathNames) {
+        for (String pathName: pathNameLists) {
 
             try {
                 reader = new BufferedReader(new FileReader(folder + "/" + pathName));
@@ -116,13 +135,15 @@ public class OrderDaoFileImpl implements OrderDao {
             String currentLine;
             Order currentOrder;
             reader.readLine(); // this will read the first line
-
+            List<Order> orderlist = new ArrayList<>();
             while ((currentLine=reader.readLine()) != null){
 
                 currentOrder = unmarshallOrder(currentLine,pathName.substring(7,15));
-
+                orderlist.add(currentOrder);
                 orders.put(currentOrder.getOrderNumber(), currentOrder);
+
             }
+            ordersByDate.put(pathName.substring(7,15), (ArrayList<Order>) orderlist);
         }
     }
 
@@ -172,75 +193,38 @@ public class OrderDaoFileImpl implements OrderDao {
         return orderAsText;
     }
 
-
-
     /**
      * Writes all students in the roster out to a ROSTER_FILE.  See loadRoster
      * for file format.
      *
      * @throws OrderDaoException if an error occurs writing to the file
      */
-    private void writeOrders(boolean isExport) throws OrderDaoException, IOException {
+    private void writeOrders() throws OrderDaoException {
         PrintWriter out;
-        List<Order> orderList = this.getOrders();
-        for (Order currentOrder : orderList) {
 
-            String dateString = currentOrder.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
-            String pathName = "Orders/Orders_" + dateString + ".txt";
+        for (String key: ordersByDate.keySet()){
+            String pathName = "Orders/Orders_" + key + ".txt";
 
             try {
-                File file = new File(pathName);
-                out = new PrintWriter(file);
-                if (file.createNewFile()) {
-                    out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
-                }
+                out = new PrintWriter(new FileWriter(pathName));
             } catch (IOException e) {
                 throw new OrderDaoException(
-                        "Could not save order data.", e);
+                        "Could not save student data.", e);
             }
-            String orderAsText = marshallOrder(currentOrder, isExport);
-
-            out.append(orderAsText);
-            // force PrintWriter to write line to the file
-            out.flush();
+            out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
+            ArrayList<Order> orderList = ordersByDate.get(key);
+            String orderAsText;
+            for (Order currentOrder : orderList ) {
+                // turn a Student into a String
+                orderAsText = marshallOrder(currentOrder,false);
+                // write the Student object to the file
+                out.println(orderAsText);
+                // force PrintWriter to write line to the file
+                out.flush();
+            }
+            // Clean up
             out.close();
         }
     }
-    /**
-     * Writes all students in the roster out to a ROSTER_FILE.  See loadRoster
-     * for file format.
-     *
-     * @throws OrderDaoException if an error occurs writing to the file
-     */
-    private void writeNewOrders() throws OrderDaoException, IOException {
 
-
-        for(Order newOrder:newOrders) {
-            System.out.println(newOrder.toString());
-            String dateString = newOrder.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
-            String pathName = "Orders/Orders_" + dateString + ".txt";
-
-            try {
-                File file = new File(pathName);
-                boolean isNewFile = file.createNewFile();
-
-                FileWriter fstream = new FileWriter(pathName, true);
-                BufferedWriter out = new BufferedWriter(fstream);
-                if (isNewFile) {
-                    out.write("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
-                }
-                String orderAsText = marshallOrder(newOrder, false);
-                out.newLine();
-                out.write(orderAsText);
-                // force PrintWriter to write line to the file
-                out.close();
-            } catch (IOException e) {
-                throw new OrderDaoException(
-                        "Could not save order data.", e);
-            }
-
-
-        }
-
-    }
 }

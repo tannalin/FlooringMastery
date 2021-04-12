@@ -22,19 +22,16 @@ public class OrderView {
     }
 
     public Order getNewOrderInfo(Integer previousOrderNumber, List<Product> products) throws OrderDaoException {
+        //set info to orders
         Order currentOrder = new Order(previousOrderNumber + 1);
-        String orderDate = io.readDate("Please enter the order date(format: MMddyyyy (06302021))");
+        String orderDate = readDate(isQueryMode);
         currentOrder.setOrderDate(orderDate);
         String customerName = readCustomerName(isEditMode);
         String taxState = readStateAb(isEditMode);
-
-        //String taxState = io.readString("Please enter state ");
         displayProductsList(products);
-        String productType =readProductType(isEditMode);
-                //String productType = io.readString("Please enter product type, EX:Wood");
-        String area = io.readString("Please enter area");
-
-
+        String productType = readProductType(isEditMode);
+        String area = readArea(isEditMode);
+        //set info to orders
         currentOrder.setCustomerName(customerName);
         currentOrder.setTax(taxState);
         currentOrder.setArea(area);
@@ -42,11 +39,27 @@ public class OrderView {
         return currentOrder;
     }
 
+    public Order getEditInfo(Order order,List<Product> products) throws OrderDaoException {
+        isEditMode = true;
+        currentOrder = order;
+        String customerName = readCustomerName(isEditMode);
+        String taxState = readStateAb(isEditMode);
+        displayProductsList(products);
+        String productType = readProductType(isEditMode);
+        String area = readArea(isEditMode);
+        //set info to orders
+        order.setCustomerName(customerName);
+        order.setTax(taxState);
+        order.setArea(area);
+        order.setProduct(productType);
+        return order;
+    }
+
     public void displayCreateOrderBanner() {
         io.print("=== Create Order ===");
     }
 
-    public void displayProductsList(List<Product> products) throws OrderDaoException {
+    public void displayProductsList(List<Product> products) {
         io.print("Products:");
         for (Product currentProduct : products) {
             String orderInfo = String.format("#%s : %s %s",
@@ -55,28 +68,25 @@ public class OrderView {
         }
     }
 
-    public void displayCreateSuccessBanner() throws OrderDaoException {
+    public void displayCreateSuccessBanner() {
         io.readString(
                 "Order successfully created.  Please hit enter to continue");
     }
 
-    public void displayOrderList(List<Order> orderList) throws OrderDaoException {
+    public void displayOrderList(List<Order> orderList) {
         for (Order currentOrder : orderList) {
             io.print(currentOrder.toString());
         }
         io.readString("Please hit enter to continue.");
     }
 
-    public void displayDisplayAllBanner() {
+    public void displayDisplayOrdersBanner() {
         io.print("=== Display Orders ===");
+        io.print("Order: OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
     }
 
-    public void displayDisplayStudentBanner () {
+    public void displayDisplayOrderBanner () {
         io.print("=== Display Order ===");
-    }
-
-    public String getOrderNumberChoice() throws OrderDaoException {
-        return io.readString("Please enter the order number.");
     }
 
 
@@ -84,7 +94,7 @@ public class OrderView {
         io.print("=== Remove Order ===");
     }
 
-    public void displayRemoveResult(Order orderRecord) throws OrderDaoException {
+    public void displayRemoveResult(Order orderRecord)  {
         if(orderRecord != null){
             io.print("Order successfully removed.");
         }else{
@@ -120,13 +130,13 @@ public class OrderView {
         return io.readInt("Please select from the above choices.", 1, 6);
     }
 
-    public String getDateChoice() throws OrderDaoException {
-        return io.readString("Please enter the order date(format: MMddyyyy (06302021)");
+    public Integer readOrderNumber() {
+        return io.readInt("Please enter the order number.");
     }
 
     public String readCustomerName(boolean isEditMode) {
         String message = "Please enter the customer Name";
-        String customerName = "";
+        String customerName;
         if(isEditMode){
             message += " : " + currentOrder.getCustomerName();
         }
@@ -144,14 +154,12 @@ public class OrderView {
         return customerName;
     }
 
-
     public String readStateAb(boolean isEditMode) throws OrderDaoException {
         String message = "Please enter the State abbreviation (ex: CA)";
-        String stateAb = "";
-        boolean isValidate = false;
-        while(!isValidate) {
+        String stateAb;
+        while(true) {
             if (isEditMode) {
-                message += " : " + currentOrder.getTax().getStateAbbreviation();
+                message = "Please enter the State abbreviation (ex: CA): " + currentOrder.getTax().getStateAbbreviation();
             }
             stateAb = io.readString(message);
             if (isEditMode) {
@@ -159,54 +167,114 @@ public class OrderView {
                     return currentOrder.getTax().getStateAbbreviation();
                 }
             }
-
             if (currentOrder.validateState(stateAb)) {
                 return stateAb;
             }else{
-                message = "Invalid input! " + message;
+                message = "Invalid input! Please enter the State abbreviation (ex: CA)";
             }
         }
-        return stateAb;
     }
 
     public String readProductType(boolean isEditMode) throws OrderDaoException {
         String message = "Please enter the Product type (ex: Wood)";
-        String productType = "";
-        boolean isValidate = false;
-        while(!isValidate) {
+        while(true) {
             if (isEditMode) {
                 message += " : " + currentOrder.getProduct().getProductType();
             }
-            productType = io.readString(message);
+            String productType = io.readString(message);
             if (isEditMode) {
                 if (currentOrder.getProduct().getProductType().equals(productType) || !io.hasContent(productType)) {
-                    return currentOrder.getTax().getStateAbbreviation();
+                    return currentOrder.getProduct().getProductType();
                 }
             }
-
             if (currentOrder.validateProduct(productType)) {
                 return productType;
             }else{
-                message = "Invalid input! " + message;
+                message = "Invalid input! Please enter the Product type (ex: Wood)";
             }
         }
-        return productType;
-    }
-    public String readDate(boolean isQueryMode) throws OrderDaoException {
-        String message = "Please enter the order date(format: MMddyyyy (06302021))";
-        boolean isValidInput = false;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
-        String sOrderDate = io.readString(message);
-        //if(LocalDate.parse((String.format(sOrderDate, formatter))))
-        while (!isValidInput) {
-            LocalDate orderDate = LocalDate.parse(sOrderDate,formatter);
 
-            isValidInput = true;
-            LocalDate START = LocalDate.now();
-            if(LocalDate.parse(sOrderDate,formatter).isBefore(START)||!isQueryMode){
-                isValidInput = false;
+    }
+
+    public String readDate(boolean isQueryMode) {
+        String message = "Please enter the order date(format: MMddyyyy (06302021))";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
+
+        while (true) {
+            String sOrderDate = io.readString(message);
+
+            if(currentOrder.validateDate(sOrderDate)) {
+                if (isQueryMode) {
+                    return sOrderDate;
+                }
+                LocalDate START = LocalDate.now();
+                if (!LocalDate.parse(sOrderDate, formatter).isBefore(START)) {
+                    return sOrderDate;
+                } else {
+                    message = "Date must be in future! Please enter the order date(format: MMddyyyy (06302021))";
+                }
+
+            }else {
+                message = "Invalid date! Please enter the order date(format: MMddyyyy (06302021))" ;
             }
         }
-        return sOrderDate;
+    }
+
+    public String readArea(boolean isEditMode){
+        String message = "Please enter area";
+        while(true){
+            if (isEditMode) {
+                message = "Please enter area: (" + currentOrder.getArea().toString() +"): ";
+                String areaString = io.readString(message);
+                if (!io.hasContent(areaString)) {
+                    return currentOrder.getArea().toString();
+                }else {
+                    try {
+                        Double.parseDouble(areaString);
+                        if(currentOrder.validateArea(Double.parseDouble(areaString)))
+                            return areaString;
+                    } catch (NumberFormatException e) {
+                        io.print("Invalid input!");
+
+                    }
+                }
+            }else {
+                double areaDouble = io.readBigDecimal(message);
+
+                if (currentOrder.validateArea(areaDouble)) {
+                    return areaDouble + "";
+                } else {
+                    message = "Invalid input! Please enter area: ";
+                }
+            }
+        }
+    }
+
+    public void displayOrderCancelBanner() {
+        io.print("=== Order  Canceled ===");
+    }
+
+    public int readConfirmPlaceOrderChoice() {
+        return io.readInt("Please Confirm to place this order (Press 1 for yes and 2 for no)",1,2);
+    }
+    public int readConfirmUpdateOrderChoice() {
+        return io.readInt("Please Confirm to place this order (Press 1 for yes and 2 for no)",1,2);
+    }
+
+    public void displayOrder(Order currentOrder) {
+        io.print("Order: OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
+        io.print(currentOrder.toString());
+    }
+
+
+    public void displayKeepSameInfoBanner() {
+        io.print("=== Keep Previous Information ===");
+        io.readString("Please hit enter to continue.");
+    }
+
+    public void displayOrderUpdatedBanner() {
+        io.print("=== Order updated ===");
+        io.readString("Please hit enter to continue.");
     }
 }

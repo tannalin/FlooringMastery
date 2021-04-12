@@ -48,16 +48,19 @@ public interface OrderDao {
      * Returns the Order object that is being removed or null if
      * there is no Order associated with the given id
      *
-     * @param OrderId id of Order to be removed
+     * @param orderNumber number of Order to be removed
+     * @param date date of Order to be removed
      * @return Order object that was removed or null if no Order
      * was associated with the given Order id
      * @throws OrderDaoException
      */
-    Order removeOrder(String OrderId)
+    Order removeOrder(Integer orderNumber, String date)
             throws OrderDaoException, IOException;
 
     Integer getPreviousOrderNumber() throws OrderDaoException;
 
     void writeOrderNumberToFile(Integer orderNumber) throws OrderDaoException;
     List<Order> getOrdersBaseOnDate(String date) throws OrderDaoException, IOException;
+
+    void editOrder(Integer orderNumber, Order order) throws IOException, OrderDaoException;
 }
