@@ -16,7 +16,7 @@ public class OrderDaoFileImpl implements OrderDao {
     public static final int COUNT_DELIMTER = 11;
 
     @Override
-    public Order addOrder(Integer orderNumber, Order order) throws OrderDaoException, IOException {
+    public Order addOrder(Integer orderNumber, Order order) throws OrderPersistenceException, IOException {
         loadOrdersFile();
         Order newOrder = orders.put(orderNumber, order);
         String date2String = order.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
@@ -32,19 +32,23 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> getOrders() throws OrderDaoException, IOException {
+    public List<Order> getOrders() throws OrderPersistenceException, IOException {
         loadOrdersFile();
         return new ArrayList<>(orders.values());
     }
 
     @Override
-    public List<Order> getOrdersBaseOnDate(String date) throws OrderDaoException, IOException {
-        loadOrdersFileBaseOnDate(date);
-        return new ArrayList<>(orders.values());
+    public List<Order> getOrdersBaseOnDate(String date) throws OrderPersistenceException, IOException {
+        loadOrdersFile();
+        if(ordersByDate.containsKey(date)) {
+            return new ArrayList<>(ordersByDate.get(date));
+        } else {
+            return null;
+        }
     }
 
     @Override
-    public void editOrder(Integer orderNumber, Order order) throws IOException, OrderDaoException {
+    public void editOrder(Integer orderNumber, Order order) throws IOException, OrderPersistenceException {
         loadOrdersFile();
         String date2String = order.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"));
         ArrayList<Order> arrayList = ordersByDate.get(date2String);
@@ -55,35 +59,45 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     @Override
-    public Order getOrder(Integer orderNumber, String date) throws OrderDaoException, IOException {
+    public Order getOrder(Integer orderNumber, String date) throws OrderPersistenceException, IOException {
         loadOrdersFile();
         return orders.get(orderNumber);
     }
 
     @Override
-    public Order removeOrder(Integer orderNumber, String date) throws OrderDaoException, IOException {
+    public Order removeOrder(Integer orderNumber, String date) throws OrderPersistenceException, IOException {
         loadOrdersFile();
+        if(getOrder(orderNumber,date) == null){
+            throw new OrderPersistenceException("No such order!");
+        }
         Order removeOrder = orders.remove(orderNumber);
         ArrayList orderList = ordersByDate.get(date);
         orderList.remove(removeOrder);
+        //also remove it from the order list map by date
+        ordersByDate.get(date).remove(removeOrder);
+        if(ordersByDate.get(date).size() == 0){
+            //delete file by date
+            File dateObj = new File("Orders/Orders_" + date +".txt");
+            dateObj.delete();
+        }
         writeOrders();
         return removeOrder;
     }
 
     @Override
-    public void exportOrders() throws IOException, OrderDaoException {
+    public void exportOrders() throws IOException, OrderPersistenceException {
         loadOrdersFile();
         backupOrders();
     }
 
-    public Integer getPreviousOrderNumber() throws OrderDaoException {
+    public Integer getPreviousOrderNumber() throws OrderPersistenceException {
         try {
             // Create Scanner for reading the file
             scanner = new Scanner(
                     new BufferedReader(
                             new FileReader(ORDER_NUMBER_FILE)));
         } catch (FileNotFoundException e) {
-            throw new OrderDaoException(
+            throw new OrderPersistenceException(
                     "-_- Could not load order number data into memory.", e);
         }
         // currentLine holds the most recent line read from the file
@@ -96,12 +110,12 @@ public class OrderDaoFileImpl implements OrderDao {
     }
 
     @Override
-    public void writeOrderNumberToFile(Integer orderNumber) throws OrderDaoException {
+    public void writeOrderNumberToFile(Integer orderNumber) throws OrderPersistenceException {
         PrintWriter out;
         try {
             out = new PrintWriter(new FileWriter(ORDER_NUMBER_FILE));
         } catch (IOException e) {
-            throw new OrderDaoException(
+            throw new OrderPersistenceException(
                     "Could not save order number");
         }
         out.println(orderNumber);
@@ -109,10 +123,10 @@ public class OrderDaoFileImpl implements OrderDao {
         out.close();
     }
 
-    private Order unmarshallOrder(String orderAsText, String dataString) throws OrderDaoException {
+    private Order unmarshallOrder(String orderAsText, String dataString) throws OrderPersistenceException {
         int countDelimiter = getCountDelimiter(orderAsText);
-        int indexOfFirstDelimeter = getIndexOfFirstDelimeter(orderAsText);
-        int indexOfCountDelimeter = getIndexOfCountDelimeter(countDelimiter - COUNT_DELIMTER + 2,orderAsText );
+        int indexOfFirstDelimeter = getIndexOfFirstDelimiter(orderAsText);
+        int indexOfCountDelimeter = getIndexOfCountDelimiter(countDelimiter - COUNT_DELIMTER + 2,orderAsText );
         String orderNumber = orderAsText.substring(0,indexOfFirstDelimeter);
         Order orderFromFile = new Order(Integer.parseInt(orderNumber));
         String customerName = orderAsText.substring(indexOfFirstDelimeter + 1,indexOfCountDelimeter);
@@ -127,7 +141,7 @@ public class OrderDaoFileImpl implements OrderDao {
         return orderFromFile;
     }
 
-    private int getIndexOfCountDelimeter(int i, String orderAsText) {
+    private int getIndexOfCountDelimiter(int i, String orderAsText) {
         int index = 0;
         int count = 0;
         for(; index < orderAsText.length(); index++){
@@ -139,7 +153,7 @@ public class OrderDaoFileImpl implements OrderDao {
         return index;
     }
 
-    private int getIndexOfFirstDelimeter(String orderAsText) {
+    private int getIndexOfFirstDelimiter(String orderAsText) {
         int index = 0;
         for(; index < orderAsText.length(); index++){
             if ((orderAsText.charAt(index)+"").equals(DELIMITER)) {
@@ -149,7 +163,7 @@ public class OrderDaoFileImpl implements OrderDao {
         return index;
     }
 
-    private void loadOrdersFile() throws OrderDaoException, IOException {
+    private void loadOrdersFile() throws OrderPersistenceException, IOException {
         String[] pathNameLists;
         File folder = new File("Orders");
         pathNameLists = folder.list();
@@ -161,7 +175,7 @@ public class OrderDaoFileImpl implements OrderDao {
                 reader = new BufferedReader(new FileReader(folder + "/" + pathName));
 
             } catch (FileNotFoundException e) {
-                throw new OrderDaoException(
+                throw new OrderPersistenceException(
                         "-_- Could not load order data into memory.", e);
             }
             // currentLine holds the most recent line read from the file
@@ -178,31 +192,6 @@ public class OrderDaoFileImpl implements OrderDao {
             }
             ordersByDate.put(pathName.substring(7,15), (ArrayList<Order>) orderlist);
         }
-    }
-
-    private void loadOrdersFileBaseOnDate(String date) throws OrderDaoException, IOException {
-
-        String pathName = "Orders/Orders_" + date + ".txt";
-        BufferedReader reader;
-            try {
-                reader = new BufferedReader(new FileReader(pathName));
-
-            } catch (FileNotFoundException e) {
-                throw new OrderDaoException(
-                        "-_- Something went wrong or no orders on that date!", e);
-            }
-            // currentLine holds the most recent line read from the file
-            String currentLine;
-            Order currentOrder;
-            reader.readLine(); // this will read the first line
-
-            while ((currentLine=reader.readLine()) != null){
-
-                currentOrder = unmarshallOrder(currentLine,pathName.substring(14,22));
-
-                orders.put(currentOrder.getOrderNumber(), currentOrder);
-            }
-
     }
 
     private String marshallOrder(Order aOrder, boolean withDate){
@@ -230,9 +219,9 @@ public class OrderDaoFileImpl implements OrderDao {
      * Writes all orders in the orderList out to files. See Orders/
      * for file format.
      *
-     * @throws OrderDaoException if an error occurs writing to the file
+     * @throws OrderPersistenceException if an error occurs writing to the file
      */
-    private void writeOrders() throws OrderDaoException {
+    private void writeOrders() throws OrderPersistenceException {
         PrintWriter out;
 
         for (String key: ordersByDate.keySet()){
@@ -241,7 +230,7 @@ public class OrderDaoFileImpl implements OrderDao {
             try {
                 out = new PrintWriter(new FileWriter(pathName));
             } catch (IOException e) {
-                throw new OrderDaoException(
+                throw new OrderPersistenceException(
                         "Could not save orders data.", e);
             }
             out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total");
@@ -257,22 +246,20 @@ public class OrderDaoFileImpl implements OrderDao {
         }
     }
 
-
-
     /**
      * Writes all orders in the orderList out to files. See Orders/
      * for file format.
      *
-     * @throws OrderDaoException if an error occurs writing to the file
+     * @throws OrderPersistenceException if an error occurs writing to the file
      */
-    public void backupOrders() throws OrderDaoException, IOException {
+    public void backupOrders() throws OrderPersistenceException, IOException {
         PrintWriter out;
 
 
         try {
             out = new PrintWriter(new FileWriter(BACK_UP_FILE));
         } catch (IOException e) {
-            throw new OrderDaoException(
+            throw new OrderPersistenceException(
                     "Could not save orders data.", e);
         }
         out.println("OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total,OrderDate" +

@@ -1,26 +1,28 @@
 package com.sg.flooringmastery.controller;
 
-import com.sg.flooringmastery.dao.OrderDao;
-import com.sg.flooringmastery.dao.OrderDaoException;
-import com.sg.flooringmastery.dao.ProductDao;
+import com.sg.flooringmastery.dao.OrderPersistenceException;
 import com.sg.flooringmastery.model.Order;
+import com.sg.flooringmastery.service.OrderDataDuplicationException;
+import com.sg.flooringmastery.service.OrderDataValidationException;
+import com.sg.flooringmastery.service.OrderSerivce;
+import com.sg.flooringmastery.service.ProductService;
 import com.sg.flooringmastery.view.OrderView;
 import java.io.IOException;
 import java.util.List;
 
 public class OrderController {
     private OrderView view;
-    private OrderDao orderDao;
-    private ProductDao productDao;
+    private OrderSerivce orderSerivce;
+    private ProductService productService;
     final int CONFIRM = 1;
 
-    public OrderController(OrderDao orderDao, ProductDao productDao, OrderView view) {
-        this.orderDao = orderDao;
-        this.productDao = productDao;
+    public OrderController(OrderSerivce orderSerivce, ProductService productService, OrderView view) {
+        this.orderSerivce = orderSerivce;
+        this.productService = productService;
         this.view = view;
     }
 
-    public void run()  {
+    public void run() {
         boolean keepGoing = true;
         int menuSelection;
         try {
@@ -52,10 +54,8 @@ public class OrderController {
                 }
             }
             exitMessage();
-        } catch (OrderDaoException | IOException e) {
+        } catch (OrderPersistenceException e) {
             view.displayErrorMessage(e.getMessage());
-        } finally {
-            view.printMenuAndGetSelection();
         }
     }
 
@@ -63,51 +63,79 @@ public class OrderController {
         return view.printMenuAndGetSelection();
     }
 
-    private void createOrder() throws OrderDaoException, IOException {
+    private void createOrder() throws OrderPersistenceException {
         view.displayCreateOrderBanner();
-        Order newOrder= view.getNewOrderInfo(orderDao.getPreviousOrderNumber(), productDao.getProducts());
-        view.displayDisplayOrderBanner();
-        view.displayOrder(newOrder);
-        int confirm = view.readConfirmPlaceOrderChoice();
-        if(confirm == CONFIRM) {
-            orderDao.writeOrderNumberToFile(newOrder.getOrderNumber());
-            orderDao.addOrder(newOrder.getOrderNumber(), newOrder);
-            view.displayCreateSuccessBanner();
-        } else {
-            view.displayOrderCancelBanner();
+        try {
+            Order newOrder = view.getNewOrderInfo(orderSerivce.getPreviousOrderNumber(), productService.getProducts());
+            view.displayDisplayOrderBanner();
+            view.displayOrder(newOrder);
+            int confirm = view.readConfirmPlaceOrderChoice();
+            if (confirm == CONFIRM) {
+                orderSerivce.writeOrderNumberToFile(newOrder.getOrderNumber());
+                orderSerivce.addOrder(newOrder.getOrderNumber(), newOrder);
+                view.displayCreateSuccessBanner();
+            } else {
+                view.displayOrderCancelBanner();
+            }
+        }catch( IOException | OrderDataDuplicationException | OrderDataValidationException e){
+            view.displayErrorMessage(e.getMessage());
         }
     }
 
-    private void listOrdersBaseOnDate() throws OrderDaoException, IOException {
+    private void listOrdersBaseOnDate() throws OrderPersistenceException {
+
         view.displayDisplayOrdersBanner();
         String date = view.readDate(true);
-        List<Order> orderList = orderDao.getOrdersBaseOnDate(date);
+        List<Order> orderList = null;
+        try {
+            orderList = orderSerivce.getOrdersBaseOnDate(date);
+        } catch (OrderDataValidationException | OrderDataDuplicationException | IOException e) {
+            e.printStackTrace();
+        }
         view.displayOrderList(orderList);
     }
 
-    private void editOrder() throws OrderDaoException, IOException {
-        view.displayDisplayOrderBanner();
-        Integer orderNumber = view.readOrderNumber();
-        String date = view.readDate(true);
-        Order order = orderDao.getOrder(orderNumber,date);
-        String beforeUpdate = order.toString();
-        order = view.getEditInfo(order,productDao.getProducts());
-        view.displayOrder(order);
-        int confirm = view.readConfirmUpdateOrderChoice();
-        if (!beforeUpdate.equals(order.toString())&&confirm == CONFIRM) {
-            orderDao.editOrder(order.getOrderNumber(), order);
-            view.displayOrderUpdatedBanner();
-        } else {
-            view.displayKeepSameInfoBanner();
+    private void editOrder() throws OrderPersistenceException {
+        try {
+            view.displayDisplayOrderBanner();
+            Integer orderNumber = view.readOrderNumber();
+            String date = view.readDate(true);
+            Order order = orderSerivce.getOrder(orderNumber, date);
+            if(order != null) {
+                String beforeUpdate = order.toString();
+
+                order = view.getEditInfo(order, productService.getProducts());
+                view.displayOrder(order);
+                int confirm = view.readConfirmUpdateOrderChoice();
+                if (!beforeUpdate.equals(order.toString()) && confirm == CONFIRM) {
+                    orderSerivce.editOrder(order.getOrderNumber(), order);
+                    view.displayOrderUpdatedBanner();
+                } else {
+                    view.displayKeepSameInfoBanner();
+                }
+            } else {
+                view.displayErrorMessage("No such order!");
+            }
+        }catch( IOException | OrderDataDuplicationException | OrderDataValidationException e){
+            view.displayErrorMessage(e.getMessage());
         }
     }
 
-    private void removeOrder() throws OrderDaoException, IOException {
+    private void removeOrder() throws OrderPersistenceException {
+        Order removeOrder = null;
         boolean isQueryMode = true;
-        view.displayRemoveOrderBanner();
-        Integer orderNumber = view.readOrderNumber();
-        String date =  view.readDate(isQueryMode);
-        Order removeOrder = orderDao.removeOrder(orderNumber, date);
+        try {
+            view.displayRemoveOrderBanner();
+            Integer orderNumber = view.readOrderNumber();
+            String date =  view.readDate(isQueryMode);
+            removeOrder =orderSerivce.getOrder(orderNumber,date);
+        if(removeOrder != null) {
+            orderSerivce.removeOrder(orderNumber, date);
+        }
+        } catch (OrderDataValidationException | OrderDataDuplicationException | IOException e) {
+            e.printStackTrace();
+        }
+
         view.displayRemoveResult(removeOrder);
     }
 
@@ -119,8 +147,12 @@ public class OrderController {
         view.displayExitBanner();
     }
 
-    private void exportOrders() throws IOException, OrderDaoException {
-        orderDao.exportOrders();
+    private void exportOrders() {
+        try {
+            orderSerivce.exportOrders();
+        } catch (OrderDataDuplicationException | OrderDataValidationException | IOException | OrderPersistenceException e) {
+            e.printStackTrace();
+        }
         view.displayExportSuccessBanner();
     }
 }

@@ -12,13 +12,13 @@ public class TaxDaoFileImpl implements TaxDao{
     public static final String DELIMITER = ",";
 
     @Override
-    public List<Tax> getTaxes() throws OrderDaoException {
+    public List<Tax> getTaxes() throws OrderPersistenceException {
         loadTaxesFile();
         return new ArrayList<Tax>(taxes.values());
     }
 
     @Override
-    public Tax getTax(String stateAB) throws OrderDaoException {
+    public Tax getTax(String stateAB) throws OrderPersistenceException {
         loadTaxesFile();
         return taxes.get(stateAB);
     }
@@ -33,7 +33,7 @@ public class TaxDaoFileImpl implements TaxDao{
         return taxFromFile;
     }
 
-    private void loadTaxesFile() throws OrderDaoException {
+    private void loadTaxesFile() throws OrderPersistenceException {
         Scanner scanner;
         try {
             // Create Scanner for reading the file
@@ -41,7 +41,7 @@ public class TaxDaoFileImpl implements TaxDao{
                     new BufferedReader(
                             new FileReader(TAXES_FILE)));
         } catch (FileNotFoundException e) {
-            throw new OrderDaoException(
+            throw new OrderPersistenceException(
                     "-_- Could not load roster data into memory.", e);
         }
         // currentLine holds the most recent line read from the file

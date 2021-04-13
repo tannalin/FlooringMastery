@@ -1,14 +1,11 @@
 package com.sg.flooringmastery.view;
 
-import com.sg.flooringmastery.dao.OrderDaoException;
+import com.sg.flooringmastery.dao.OrderPersistenceException;
 import com.sg.flooringmastery.model.Order;
 import com.sg.flooringmastery.model.Product;
 
-import java.io.IOException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class OrderView {
@@ -37,7 +34,7 @@ public class OrderView {
     }
 
     //get order information from user
-    public Order getNewOrderInfo(Integer previousOrderNumber, List<Product> products) throws OrderDaoException {
+    public Order getNewOrderInfo(Integer previousOrderNumber, List<Product> products) throws OrderPersistenceException {
         //set info to orders
         Order currentOrder = new Order(previousOrderNumber + 1);
         String orderDate = readDate(isQueryMode);
@@ -54,7 +51,7 @@ public class OrderView {
         currentOrder.setProduct(productType);
         return currentOrder;
     }
-    public Order getEditInfo(Order order,List<Product> products) throws OrderDaoException {
+    public Order getEditInfo(Order order,List<Product> products) throws OrderPersistenceException {
         isEditMode = true;
         currentOrder = order;
         String customerName = readCustomerName(isEditMode);
@@ -93,7 +90,7 @@ public class OrderView {
         }
         return customerName;
     }
-    public String readStateAb(boolean isEditMode) throws OrderDaoException {
+    public String readStateAb(boolean isEditMode) throws OrderPersistenceException {
         String message = "Please enter the State abbreviation (ex: CA)";
         String stateAb;
         while(true) {
@@ -113,7 +110,7 @@ public class OrderView {
             }
         }
     }
-    public String readProductType(boolean isEditMode) throws OrderDaoException {
+    public String readProductType(boolean isEditMode) throws OrderPersistenceException {
         String message = "Please enter the Product type (ex: Wood)";
         while(true) {
             if (isEditMode) {
@@ -207,10 +204,14 @@ public class OrderView {
         }
     }
     public void displayOrderList(List<Order> orderList) {
-        for (Order currentOrder : orderList) {
-            io.print(currentOrder.toString());
+        if(orderList != null){
+            for (Order currentOrder : orderList) {
+                io.print(currentOrder.toString());
+            }
+            io.readString("Please hit enter to continue.");
+        } else {
+            displayErrorMessage("No orders on this date");
         }
-        io.readString("Please hit enter to continue.");
     }
 
     //Display banners to show information about the statues of applications
@@ -241,7 +242,7 @@ public class OrderView {
         io.print("=== Display Order for update ===");
     }
     public void displayRemoveOrderBanner () {
-        io.print("=== Order successfully removed ===");
+        io.print("=== Order remove ===");
     }
     public void displayExitBanner() {
         io.print("Good Bye!!!");
@@ -252,7 +253,7 @@ public class OrderView {
         }else{
             io.print("No such order.");
         }
-
+        io.readString("Please hit enter to continue.");
     }
     public void displayUnknownCommandBanner() {
         io.print("Unknown Command!!!");
@@ -260,6 +261,7 @@ public class OrderView {
     public void displayErrorMessage(String errorMsg) {
         io.print("=== ERROR ===");
         io.print(errorMsg);
+        io.readString("Please hit enter to continue.");
     }
     public void displayOrderCancelBanner() {
         io.print("=== Order Canceled ===");

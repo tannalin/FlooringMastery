@@ -12,13 +12,13 @@ public class ProductDaoFileImpl implements ProductDao{
     public static final String DELIMITER = ",";
 
     @Override
-    public List<Product> getProducts() throws OrderDaoException {
+    public List<Product> getProducts() throws OrderPersistenceException {
         loadProductsFile();
         return new ArrayList<Product>(products.values());
     }
 
     @Override
-    public Product getProduct(String productType) throws OrderDaoException {
+    public Product getProduct(String productType) throws OrderPersistenceException {
         loadProductsFile();
         return products.get(productType);
     }
@@ -33,7 +33,7 @@ public class ProductDaoFileImpl implements ProductDao{
         return productFromFile;
     }
 
-    private void loadProductsFile() throws OrderDaoException {
+    private void loadProductsFile() throws OrderPersistenceException {
         Scanner scanner;
         try {
             // Create Scanner for reading the file
@@ -41,7 +41,7 @@ public class ProductDaoFileImpl implements ProductDao{
                     new BufferedReader(
                             new FileReader(PRODUCTS_FILE)));
         } catch (FileNotFoundException e) {
-            throw new OrderDaoException(
+            throw new OrderPersistenceException(
                     "-_- Could not load roster data into memory.", e);
         }
         // currentLine holds the most recent line read from the file

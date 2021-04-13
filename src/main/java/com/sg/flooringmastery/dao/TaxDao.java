@@ -8,10 +8,10 @@ public interface TaxDao {
      * Returns a List of all Taxes on the file.
      *
      * @return Order List containing all Taxes on the file.
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     List<Tax> getTaxes()
-            throws OrderDaoException;
+            throws OrderPersistenceException;
 
     /**
      * Returns the Tax object associated with the given StateAB
@@ -20,8 +20,8 @@ public interface TaxDao {
      * @param StateAB of the Tax to retrieve
      * @return the Tax object associated with the StateAB,
      * null if no such Tax exists
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     Tax getTax(String StateAB)
-            throws OrderDaoException;
+            throws OrderPersistenceException;
 }

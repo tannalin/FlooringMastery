@@ -1,9 +1,11 @@
-package com.sg.flooringmastery.dao;
+package com.sg.flooringmastery.service;
 
+import com.sg.flooringmastery.dao.OrderPersistenceException;
 import com.sg.flooringmastery.model.Product;
+
 import java.util.List;
 
-public interface ProductDao {
+public interface ProductService {
     /**
      * Returns a List of all products on the file.
      *

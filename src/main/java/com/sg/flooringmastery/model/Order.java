@@ -32,14 +32,14 @@ public class Order implements Comparable {
     public Tax getTax() {
         return tax;
     }
-    public void setTax(String stateAB) throws OrderDaoException {
+    public void setTax(String stateAB) throws OrderPersistenceException {
         TaxDao taxDao = new TaxDaoFileImpl();
         this.tax  = taxDao.getTax(stateAB);
     }
     public Product getProduct() {
         return product;
     }
-    public void setProduct(String productType) throws OrderDaoException {
+    public void setProduct(String productType) throws OrderPersistenceException {
         ProductDao productDao = new ProductDaoFileImpl();
         this.product = productDao.getProduct(productType);
     }
@@ -91,13 +91,13 @@ public class Order implements Comparable {
                 calculateMaterialCost() + "   " + calculateLaborCost() + "   " + calculateTax() + "   " + calculateTotal();
     }
 
-    public boolean validateState(String stateAb) throws OrderDaoException {
+    public boolean validateState(String stateAb) throws OrderPersistenceException {
         TaxDao taxDao = new TaxDaoFileImpl();
         Tax tax = taxDao.getTax(stateAb);
         return tax != null;
     }
 
-    public boolean validateProduct(String productType) throws OrderDaoException {
+    public boolean validateProduct(String productType) throws OrderPersistenceException {
         ProductDao productDao = new ProductDaoFileImpl();
         Product product = productDao.getProduct(productType);
         return product != null;
@@ -128,7 +128,9 @@ public class Order implements Comparable {
             return false;
         }
     }
-
+    public boolean validateCustomer(String customerName) {
+        return customerName != null && customerName.trim().length() > 0;
+    }
 
     @Override
     public int compareTo(Object o) {

@@ -16,19 +16,19 @@ public interface OrderDao {
      * @param order Order to be added to the roster
      * @return the Order object previously associated with the given
      * Order id if it exists, null otherwise
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     Order addOrder(Integer orderNumber, Order order)
-            throws OrderDaoException, IOException;
+            throws OrderPersistenceException, IOException;
 
     /**
      * Returns a List of all orders on the file.
      *
      * @return Order List containing all Orders on the file.
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     List<Order> getOrders()
-            throws OrderDaoException, IOException;
+            throws OrderPersistenceException, IOException;
 
     /**
      * Returns the Order object associated with the given student id.
@@ -38,10 +38,10 @@ public interface OrderDao {
      * @param date
      * @return the Order object associated with the given Order id,
      * null if no such Order exists
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     Order getOrder(Integer orderNumber, String date)
-            throws OrderDaoException, IOException;
+            throws OrderPersistenceException, IOException;
 
     /**
      * Removes from the roster the Order associated with the given id.
@@ -52,17 +52,17 @@ public interface OrderDao {
      * @param date date of Order to be removed
      * @return Order object that was removed or null if no Order
      * was associated with the given Order id
-     * @throws OrderDaoException
+     * @throws OrderPersistenceException
      */
     Order removeOrder(Integer orderNumber, String date)
-            throws OrderDaoException, IOException;
+            throws OrderPersistenceException, IOException;
 
-    Integer getPreviousOrderNumber() throws OrderDaoException;
+    Integer getPreviousOrderNumber() throws OrderPersistenceException;
 
-    void writeOrderNumberToFile(Integer orderNumber) throws OrderDaoException;
-    List<Order> getOrdersBaseOnDate(String date) throws OrderDaoException, IOException;
+    void writeOrderNumberToFile(Integer orderNumber) throws OrderPersistenceException;
+    List<Order> getOrdersBaseOnDate(String date) throws OrderPersistenceException, IOException;
 
-    void editOrder(Integer orderNumber, Order order) throws IOException, OrderDaoException;
+    void editOrder(Integer orderNumber, Order order) throws IOException, OrderPersistenceException;
 
-    void exportOrders() throws IOException, OrderDaoException;
+    void exportOrders() throws IOException, OrderPersistenceException;
 }
