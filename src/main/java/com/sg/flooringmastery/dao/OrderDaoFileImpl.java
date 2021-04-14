@@ -12,23 +12,23 @@ public class OrderDaoFileImpl implements OrderDao {
     private Scanner scanner;
     private static String directory;
     public static String DELIMITER = ",";
-    public static String ORDER_NUMBER_FILE ;
-    public static String BACK_UP_FILE ;
-    public static String ORDERS_FILE_DIRECTORY;
+    public static String orderNumberFile;
+    public static String backUpFile;
+    public static String ordersFileDirectory;
     public static int COUNT_DELIMITER = 11;
 
     public OrderDaoFileImpl(String testDirectory) {
         directory = testDirectory;
-       ORDER_NUMBER_FILE = directory + "Data/OrderNumberFile.txt";
-       BACK_UP_FILE = directory + "Backup/DataExport.txt";
-        ORDERS_FILE_DIRECTORY = directory;
+        orderNumberFile = directory + "Data/OrderNumberFile.txt";
+        backUpFile = directory + "Backup/DataExport.txt";
+        ordersFileDirectory = directory;
     }
 
     public OrderDaoFileImpl() {
-       directory = "DataFiles/";
-        ORDER_NUMBER_FILE = directory + "Data/OrderNumberFile.txt";
-        BACK_UP_FILE = directory + "Backup/DataExport.txt";
-        ORDERS_FILE_DIRECTORY = directory;
+        directory = "DataFiles/";
+        orderNumberFile = directory + "Data/OrderNumberFile.txt";
+        backUpFile = directory + "Backup/DataExport.txt";
+        ordersFileDirectory = directory;
     }
 
     /**
@@ -154,7 +154,7 @@ public class OrderDaoFileImpl implements OrderDao {
         ordersByDate.get(date).remove(removeOrder);
         if(ordersByDate.get(date).size() == 0){
             //delete file by date
-            File dateObj = new File(ORDERS_FILE_DIRECTORY + "Orders/Orders_" + date +".txt");
+            File dateObj = new File(ordersFileDirectory + "Orders/Orders_" + date +".txt");
             dateObj.delete();
         }
         writeOrders();
@@ -182,7 +182,7 @@ public class OrderDaoFileImpl implements OrderDao {
             // Create Scanner for reading the file
             scanner = new Scanner(
                     new BufferedReader(
-                            new FileReader(ORDER_NUMBER_FILE)));
+                            new FileReader(orderNumberFile)));
         } catch (FileNotFoundException e) {
             throw new OrderPersistenceException(
                     "-_- Could not load order number data into memory.", e);
@@ -204,7 +204,7 @@ public class OrderDaoFileImpl implements OrderDao {
     public void writeOrderNumberToFile(Integer orderNumber) throws OrderPersistenceException {
         PrintWriter out;
         try {
-            out = new PrintWriter(new FileWriter(ORDER_NUMBER_FILE));
+            out = new PrintWriter(new FileWriter(orderNumberFile));
         } catch (IOException e) {
             throw new OrderPersistenceException(
                     "Could not save order number");
@@ -284,7 +284,7 @@ public class OrderDaoFileImpl implements OrderDao {
      */
     private void loadOrdersFile() throws OrderPersistenceException, IOException {
         String[] pathNameLists;
-        File folder = new File(ORDERS_FILE_DIRECTORY + "Orders");
+        File folder = new File(ordersFileDirectory + "Orders");
         pathNameLists = folder.list();
         BufferedReader reader;
 
@@ -351,7 +351,7 @@ public class OrderDaoFileImpl implements OrderDao {
         PrintWriter out;
 
         for (String key: ordersByDate.keySet()){
-            String pathName = ORDERS_FILE_DIRECTORY + "Orders/Orders_" + key + ".txt";
+            String pathName = ordersFileDirectory + "Orders/Orders_" + key + ".txt";
 
             try {
                 out = new PrintWriter(new FileWriter(pathName));
@@ -381,7 +381,7 @@ public class OrderDaoFileImpl implements OrderDao {
         PrintWriter out;
 
         try {
-            out = new PrintWriter(new FileWriter(BACK_UP_FILE));
+            out = new PrintWriter(new FileWriter(backUpFile));
         } catch (IOException e) {
             throw new OrderPersistenceException(
                     "Could not save orders data.", e);

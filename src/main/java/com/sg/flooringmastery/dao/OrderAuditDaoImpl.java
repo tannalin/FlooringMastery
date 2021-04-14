@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public class OrderAuditDaoImpl implements OrderAuditDao {
 
-    public static final String AUDIT_FILE = "Data/audit.txt";
+    public static final String AUDIT_FILE = "DataFiles/Data/audit.txt";
 
     /**
      * @param entry write logs to file  "Data/audit.txt"
