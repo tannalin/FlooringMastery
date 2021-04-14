@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
  *
@@ -49,6 +50,13 @@ public class Order implements Comparable {
     public void setArea(String area) {
         this.area = new BigDecimal(area).setScale(2, RoundingMode.CEILING);
     }
+    public LocalDate getOrderDate() {
+        return orderDate;
+    }
+    public void setOrderDate(String sOrderDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
+        this.orderDate = LocalDate.parse(sOrderDate,formatter);
+    }
 
     /**
      * @return BigDecimal labor Cost
@@ -62,7 +70,6 @@ public class Order implements Comparable {
     public BigDecimal calculateMaterialCost(){
         return this.area.multiply(this.product.getCostPerSquareFoot()).setScale(2, RoundingMode.CEILING);
     }
-
     /**
      * @return BigDecimal Tax
      */
@@ -76,39 +83,48 @@ public class Order implements Comparable {
         return calculateMaterialCost().add(calculateTax()).add(calculateLaborCost());
     }
 
-    public LocalDate getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(String sOrderDate) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMddyyyy");
-        this.orderDate = LocalDate.parse(sOrderDate,formatter);
-    }
-
     @Override
     public String toString() {
         return "    " + orderNumber + "   " + customerName + "   " + tax.getStateName() + "   " + tax.getTaxRate() + "   " + product.getProductType() + "   " + area + "   " + product.getCostPerSquareFoot() + "   " + product.getLaborCostPerSquareFoot() + " "+
                 calculateMaterialCost() + "   " + calculateLaborCost() + "   " + calculateTax() + "   " + calculateTotal();
     }
 
+    /** validate state must be on the list of taxes file
+     * @param stateAb the state abbreviation
+     * @return boolean is validate ot not
+     * @throws OrderPersistenceException
+     */
     public boolean validateState(String stateAb) throws OrderPersistenceException {
         TaxDao taxDao = new TaxDaoFileImpl();
         Tax tax = taxDao.getTax(stateAb);
         return tax != null;
     }
 
+    /** validate the product must be on the list of products
+     * @param productType the product type stirng
+     * @return boolean is validate
+     * @throws OrderPersistenceException
+     */
     public boolean validateProduct(String productType) throws OrderPersistenceException {
         ProductDao productDao = new ProductDaoFileImpl();
         Product product = productDao.getProduct(productType);
         return product != null;
     }
 
+    /**validate the area must be more than 100
+     * @param areaDouble area that is validate or not
+     * @return boolean is validate
+     */
     public boolean validateArea(double areaDouble) {
         final int MIN_AREA = 100;
         BigDecimal area = new BigDecimal(areaDouble).setScale(2, RoundingMode.CEILING);
         return area.intValue() > MIN_AREA;
     }
 
+    /**validate the date must be an date that in future
+     * @param dateString date string that retrieve from outside
+     * @return boolean is validate
+     */
     public boolean validateDate(String dateString)  {
         String regex = "^(1[0-2]|0[1-9])(3[01]|[12][0-9]|0[1-9])[0-9]{4}$";
         if(dateString.matches(regex)){
@@ -119,22 +135,67 @@ public class Order implements Comparable {
                 return false;
             } else if (days >= 30 && month == 2) {
                 return false;
-            } else if (month == 2 && days == 29 &&!( year % 4 == 0 && year % 100 != 0 || year % 400 == 0)) {
-                return false;
-            } else {
-                return true;
-            }
+            } else return month != 2 || days != 29 || (year % 4 == 0 && year % 100 != 0 || year % 400 == 0);
         } else {
             return false;
         }
     }
+
+    /**
+     * @param customerName customer name
+     * @return boolean is validate
+     */
     public boolean validateCustomer(String customerName) {
         return customerName != null && customerName.trim().length() > 0;
     }
 
+    /**
+     * @param o
+     * @return
+     */
     @Override
     public int compareTo(Object o) {
         return ((Order) o).getOrderNumber().compareTo(this.getOrderNumber());
+    }
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.customerName);
+        hash = 89 * hash + Objects.hashCode(this.orderNumber);
+        hash = 89 * hash + Objects.hashCode(this.orderDate);
+        hash = 89 * hash + Objects.hashCode(this.tax);
+        hash = 89 * hash + Objects.hashCode(this.product);
+        hash = 89 * hash + Objects.hashCode(this.area);
+        return hash;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Order other = (Order) obj;
+        if (!Objects.equals(this.customerName, other.customerName)) {
+            return false;
+        }
+        if (!Objects.equals(this.orderDate, other.orderDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.tax, other.tax)) {
+            return false;
+        }
+        if (!Objects.equals(this.product, other.product)) {
+            return false;
+        }
+        if (!Objects.equals(this.orderNumber, other.orderNumber)) {
+            return false;
+        }
+        return Objects.equals(this.area, other.area);
     }
 }
 

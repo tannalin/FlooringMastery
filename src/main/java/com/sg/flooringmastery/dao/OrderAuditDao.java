@@ -1,5 +1,9 @@
 package com.sg.flooringmastery.dao;
 
 public interface OrderAuditDao {
-    public void writeAuditEntry(String entry) throws OrderPersistenceException;
+    /**
+     * @param entry write logs to file  "Data/audit.txt"
+     * @throws OrderPersistenceException OrderPersistenceException
+     */
+    void writeAuditEntry(String entry) throws OrderPersistenceException;
 }

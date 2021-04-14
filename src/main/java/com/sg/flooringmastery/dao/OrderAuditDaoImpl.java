@@ -6,7 +6,13 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 
 public class OrderAuditDaoImpl implements OrderAuditDao {
+
     public static final String AUDIT_FILE = "Data/audit.txt";
+
+    /**
+     * @param entry write logs to file  "Data/audit.txt"
+     * @throws OrderPersistenceException OrderPersistenceException
+     */
     @Override
     public void writeAuditEntry(String entry) throws OrderPersistenceException {
         PrintWriter out;

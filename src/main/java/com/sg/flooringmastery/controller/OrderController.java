@@ -10,6 +10,9 @@ import com.sg.flooringmastery.view.OrderView;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ *
+ */
 public class OrderController {
     private OrderView view;
     private OrderSerivce orderSerivce;
@@ -59,10 +62,19 @@ public class OrderController {
         }
     }
 
+    /**
+     * Provide the choice allow user to choose
+     * @return int
+     */
     private int getMenuSelection() {
         return view.printMenuAndGetSelection();
     }
 
+
+    /**
+     * Create new order
+     * @throws OrderPersistenceException
+     */
     private void createOrder() throws OrderPersistenceException {
         view.displayCreateOrderBanner();
         try {
@@ -71,8 +83,8 @@ public class OrderController {
             view.displayOrder(newOrder);
             int confirm = view.readConfirmPlaceOrderChoice();
             if (confirm == CONFIRM) {
-                orderSerivce.writeOrderNumberToFile(newOrder.getOrderNumber());
                 orderSerivce.addOrder(newOrder.getOrderNumber(), newOrder);
+                orderSerivce.writeOrderNumberToFile(newOrder.getOrderNumber());
                 view.displayCreateSuccessBanner();
             } else {
                 view.displayOrderCancelBanner();
@@ -82,6 +94,10 @@ public class OrderController {
         }
     }
 
+    /**
+     * To show all the orders base the date that user provide
+     * @throws OrderPersistenceException
+     */
     private void listOrdersBaseOnDate() throws OrderPersistenceException {
 
         view.displayDisplayOrdersBanner();
@@ -95,6 +111,10 @@ public class OrderController {
         view.displayOrderList(orderList);
     }
 
+    /**
+     * call to get the order number which user want to edit
+     * @throws OrderPersistenceException
+     */
     private void editOrder() throws OrderPersistenceException {
         try {
             view.displayDisplayOrderBanner();
@@ -121,6 +141,10 @@ public class OrderController {
         }
     }
 
+    /**
+     * call to get the order number which user want to remove
+     * @throws OrderPersistenceException
+     */
     private void removeOrder() throws OrderPersistenceException {
         Order removeOrder = null;
         boolean isQueryMode = true;
@@ -139,14 +163,9 @@ public class OrderController {
         view.displayRemoveResult(removeOrder);
     }
 
-    private void unknownCommand() {
-        view.displayUnknownCommandBanner();
-    }
-
-    private void exitMessage() {
-        view.displayExitBanner();
-    }
-
+    /**
+     * Export data
+     */
     private void exportOrders() {
         try {
             orderSerivce.exportOrders();
@@ -155,4 +174,14 @@ public class OrderController {
         }
         view.displayExportSuccessBanner();
     }
+
+    private void unknownCommand() {
+        view.displayUnknownCommandBanner();
+    }
+
+    private void exitMessage() {
+        view.displayExitBanner();
+    }
+
+
 }

@@ -4,11 +4,14 @@ import java.math.BigDecimal;
 
 public class Product {
     private String productType;
-    private BigDecimal CostPerSquareFoot;
+    private BigDecimal costPerSquareFoot;
     private BigDecimal laborCostPerSquareFoot;
 
     public Product(String productType) {
         this.productType = productType;
+    }
+
+    public Product(String wood, BigDecimal v, BigDecimal v1) {
     }
 
     public String getProductType() {
@@ -20,11 +23,11 @@ public class Product {
     }
 
     public BigDecimal getCostPerSquareFoot() {
-        return CostPerSquareFoot;
+        return costPerSquareFoot;
     }
 
     public void setCostPerSquareFoot(String costPerSquareFoot) {
-        CostPerSquareFoot = new BigDecimal(costPerSquareFoot);
+        this.costPerSquareFoot = new BigDecimal(costPerSquareFoot);
     }
 
     public BigDecimal getLaborCostPerSquareFoot() {
@@ -39,7 +42,7 @@ public class Product {
     public String toString() {
         return "Product{" +
                 "productType='" + productType + '\'' +
-                ", CostPerSquareFoot=" + CostPerSquareFoot +
+                ", CostPerSquareFoot=" + costPerSquareFoot +
                 ", laborCostPerSquareFoot=" + laborCostPerSquareFoot +
                 '}';
     }

@@ -8,13 +8,13 @@ import java.util.*;
 
 public class TaxDaoFileImpl implements TaxDao{
     private Map<String, Tax> taxes = new HashMap<>();
-    public static final String TAXES_FILE = "Data/Taxes.txt";
+    public static final String TAXES_FILE = "DataFiles/Data/Taxes.txt";
     public static final String DELIMITER = ",";
 
     @Override
     public List<Tax> getTaxes() throws OrderPersistenceException {
         loadTaxesFile();
-        return new ArrayList<Tax>(taxes.values());
+        return new ArrayList<>(taxes.values());
     }
 
     @Override

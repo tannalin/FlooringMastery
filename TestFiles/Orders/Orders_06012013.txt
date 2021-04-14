@@ -1,0 +1,2 @@
+OrderNumber,CustomerName,State,TaxRate,ProductType,Area,CostPerSquareFoot,LaborCostPerSquareFoot,MaterialCost,LaborCost,Tax,Total
+1,Ada Lovelace,CA,25.00,Tile,249.00,3.50,4.15,871.50,871.50,43575.00,45318.00

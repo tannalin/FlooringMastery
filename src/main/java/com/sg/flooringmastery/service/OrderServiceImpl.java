@@ -19,7 +19,7 @@ public class OrderServiceImpl implements OrderSerivce {
         this.auditDao = myAuditDao;
     }
 
-    /**
+    /** validate the order before add it to files
      * @param orderNumber id with which Order is to be associated
      * @param order       Order to be added to the roster
      * @throws OrderDataValidationException
@@ -29,7 +29,7 @@ public class OrderServiceImpl implements OrderSerivce {
      */
     @Override
     public void addOrder(Integer orderNumber, Order order) throws OrderDataValidationException, OrderDataDuplicationException, IOException, OrderPersistenceException {
-        if (dao.getOrder(orderNumber, order.getOrderDate().format(DateTimeFormatter.ofPattern("MMddyyyy"))) != null) {
+        if (dao.getPreviousOrderNumber() >= orderNumber) {
             throw new OrderDataDuplicationException(
                     "ERROR: Could not create Order.  Order Number"
                             + orderNumber
@@ -43,41 +43,84 @@ public class OrderServiceImpl implements OrderSerivce {
 
     }
 
+    /**
+     * @return
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public List<Order> getOrders() throws IOException, OrderPersistenceException {
         return dao.getOrders();
     }
 
+    /**
+     * @param orderNumber
+     * @param date
+     * @return
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public Order getOrder(Integer orderNumber, String date) throws IOException, OrderPersistenceException {
         return dao.getOrder(orderNumber,date);
     }
 
+    /**
+     * @param orderNumber
+     * @param date
+     * @return
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public Order removeOrder(Integer orderNumber, String date) throws IOException, OrderPersistenceException {
         return dao.removeOrder(orderNumber,date);
     }
 
+    /**
+     * @return
+     * @throws OrderPersistenceException
+     */
     @Override
     public Integer getPreviousOrderNumber() throws OrderPersistenceException {
         return dao.getPreviousOrderNumber();
     }
 
+    /**
+     * @param orderNumber
+     * @throws OrderPersistenceException
+     */
     @Override
     public void writeOrderNumberToFile(Integer orderNumber) throws OrderPersistenceException {
         dao.writeOrderNumberToFile(orderNumber);
     }
 
+    /**
+     * @param date
+     * @return
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public List<Order> getOrdersBaseOnDate(String date) throws IOException, OrderPersistenceException {
         return dao.getOrdersBaseOnDate(date);
     }
 
+    /**
+     * @param orderNumber
+     * @param order
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public void editOrder(Integer orderNumber, Order order) throws IOException, OrderPersistenceException {
         dao.editOrder(orderNumber,order);
     }
 
+    /**
+     * @throws IOException
+     * @throws OrderPersistenceException
+     */
     @Override
     public void exportOrders() throws IOException, OrderPersistenceException {
         dao.exportOrders();
